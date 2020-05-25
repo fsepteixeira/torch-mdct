@@ -1,28 +1,9 @@
-import torch
-import torch.nn.functional as F
 import numpy as np
 
-from scipy.signal import kaiser
+import torch
+import torch.nn.functional as F
 
-def mdct_basis_(N):
-    n0 = ((N//2) + 1) /2
-    idx   = np.arange(0,N,1).reshape(N, 1)  
-    kn    = np.multiply(idx + n0,(idx[:(N//2),:] + 0.5).T)
-    basis = np.cos((2*np.pi/N)*kn)
-    return torch.FloatTensor(basis.T)
-
-def kbd_window_(win_len, filt_len, alpha=4):
-    window = np.cumsum(kaiser(int(win_len/2)+1,np.pi*alpha))
-    window = np.sqrt(window[:-1] / window[-1])
-
-    if filt_len > win_len:
-        pad =(filt_len - win_len) // 2
-    else:
-        pad = 0
-
-    window = np.concatenate([window, window[::-1]])
-    window = np.pad(window, (np.ceil(pad).astype(int), np.floor(pad).astype(int)), mode='constant')
-    return torch.FloatTensor(window)[:,None]
+from .utils import *
 
 class MDCT(torch.nn.Module):
     def __init__(self, filter_length=1024, window_length=None, **kwargs):
@@ -66,7 +47,7 @@ class MDCT(torch.nn.Module):
         self.register_buffer('forward_basis', forward_basis.float())
         self.register_buffer('inverse_basis', inverse_basis.float())
 
-    def transform(self, input_data, **kwargs):
+    def mdct(self, input_data, **kwargs):
         """Transform input data (audio) to MDCT domain.
         
         Arguments:
@@ -91,7 +72,7 @@ class MDCT(torch.nn.Module):
         # Return magnitude -> MDCT only includes real values
         return output
 
-    def inverse(self, magnitude, **kwargs):
+    def imdct(self, magnitude, **kwargs):
         """Call the inverse STFT (iSTFT), given magnitude and phase tensors produced 
         by the ```transform``` function.
         
@@ -109,7 +90,7 @@ class MDCT(torch.nn.Module):
 
         return (inverse_transform[..., np.ceil(self.pad_amount).astype(int):-np.floor(self.pad_amount).astype(int)]).squeeze(1)*(4/self.filter_length)
 
-    def forward(self, input_data, **kwargs):
+    def reconstruct(self, input_data, **kwargs):
         """Takes input data (audio) to DCT domain and then back to audio.
         
         Arguments:
@@ -119,7 +100,7 @@ class MDCT(torch.nn.Module):
             reconstruction {tensor} -- Reconstructed audio given magnitude. Of
                 shape (num_batch, num_samples)
         """
-        magnitude = self.transform(input_data)
-        reconstruction = self.inverse(magnitude)
+        magnitude 	   = self.mdct(input_data)
+        reconstruction = self.imdct(magnitude)
         return reconstruction
 
