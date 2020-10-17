@@ -1,7 +1,7 @@
 # torch-mdct
 Pytorch implementation of the 1D Modified Discrete Cosine Transform (MDCT) and its inverse (iMDCT).
 
-The MDCT and its inverse are implemented using 1D convolutions and 1D transpose convolutions, using a filterbank of Kaiser-Bessel Derived windows with alpha = 4.
+The MDCT and its inverse are implemented using 1D regular and transpose convolutions, using a filterbank of Kaiser-Bessel Derived windows with alpha = 4.
 
 The current implementation only allows even filter_lengths and always uses 50% overlap to guarantee perfect reconstruction. 
 This module is an adaptation/combination of the following github repositories:
