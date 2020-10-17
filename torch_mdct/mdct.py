@@ -73,7 +73,7 @@ class MDCT(torch.nn.Module):
         return output
 
     def imdct(self, magnitude, **kwargs):
-        """Call the inverse STFT (iSTFT), given magnitude and phase tensors produced 
+        """Call the inverse MDCT (iMDCT), given the tensor produced 
         by the ```transform``` function.
         
         Arguments:
@@ -100,7 +100,7 @@ class MDCT(torch.nn.Module):
             reconstruction {tensor} -- Reconstructed audio given magnitude. Of
                 shape (num_batch, num_samples)
         """
-        magnitude 	   = self.mdct(input_data)
+        magnitude.     = self.mdct(input_data)
         reconstruction = self.imdct(magnitude)
         return reconstruction
 
