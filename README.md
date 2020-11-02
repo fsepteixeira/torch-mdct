@@ -9,6 +9,6 @@ This module is an adaptation/combination of the following github repositories:
 - https://github.com/nils-werner/mdct
 - https://github.com/pseeth/torch-stft
 
-It follows the MDCT implementation described by Bosi, Marina and Richard E. Goldberg in:
+It follows the MDCT implementation described by Bosi, Marina and Goldberg, Richard E. in:
 
 - Introduction to digital audio coding and standards, Vol. 721. Springer Science & Business Media, 2012, https://www.springer.com/gp/book/9781402073571.
