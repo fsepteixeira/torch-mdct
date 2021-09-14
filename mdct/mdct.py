@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from .utils import *
 
 class MDCT(torch.nn.Module):
-    def __init__(self, filter_length=1024, window_length=None, **kwargs):
+    def __init__(self, filter_length=1024, window_length=None, pad=False, save_pad=False, **kwargs):
         """
         This module implements the 1D MDCT and its inverse using 1D convolution and 1D transpose convolutions.
         It only allows even filter_lengths and always uses 50% overlap to guarantee perfect 
@@ -21,19 +21,27 @@ class MDCT(torch.nn.Module):
         
         Keyword Arguments:
             filter_length {int} -- Length of filters used (default: {1024})
-            win_length {[type]} -- Length of the window function applied to each frame, 
+            win_length {int} -- Length of the window function applied to each frame, 
 				should be smaller than the filter_length (if not specified, it
                 equals the filter length). (default: {None})
+            pad {bool} -- Whether to pad input or not. If True will pad input such that:
+                             num_samples % filter_length == 0. 
+                          This guarantees that no samples are lost. 
+                          If False, the output of the iMDCT will correspond to:
+                             num_samples - (num_samples % filter_length) 
+                          (equivalent to 'valid' convolution). (default {False})
+           save_pad {bool} -- If True, the object will save the last value used for padding and will remove it after the iMDCT is applied. (default {False})
         """
 
         super(MDCT, self).__init__()
         
+        self.pad = pad
+        self.save_pad = save_pad
         self.filter_length = filter_length
         assert((filter_length % 2) == 0)
 
-        self.hop_length    = filter_length // 2  
-        self.window_length = window_length if window_length else filter_length
-        self.pad_amount    = filter_length // 2
+        self.window_length = window_length if window_length is not None else filter_length
+        self.hop_size      = filter_length // 2
 
         # get window and zero center pad it to filter_length
         assert(filter_length >= self.window_length)
@@ -41,7 +49,6 @@ class MDCT(torch.nn.Module):
 
         forward_basis = mdct_basis_(filter_length)
         forward_basis *= self.window.T
-
         inverse_basis = forward_basis.T
 
         self.register_buffer('forward_basis', forward_basis.float())
@@ -59,16 +66,20 @@ class MDCT(torch.nn.Module):
         """
 
         # Pad data with win_len / 2 on either side
-        num_batches, num_samples = input_data.size()
-
+        num_batches, num_samples = input_data.size()        
         input_data = input_data.view(num_batches, 1, num_samples)
-        input_data = F.pad(input_data.unsqueeze(1), (np.ceil(self.pad_amount).astype(int), np.floor(self.pad_amount).astype(int),0,0), mode='constant')
-        input_data = input_data.squeeze(1)
+        
+        if self.pad:
+            pad = (num_samples % self.filter_length)
+            input_data = F.pad(input_data, (pad, pad, 0, 0), mode='constant')
+            
+            if self.save_pad:
+                self.pad = pad
 
         output = F.conv1d(input_data, 
-                    self.forward_basis.unsqueeze(dim=1), 
-                    stride=self.hop_length, padding=0)
-
+                          self.forward_basis.unsqueeze(dim=1), 
+                          stride=self.hop_size, padding=0)
+        
         # Return magnitude -> MDCT only includes real values
         return output
 
@@ -86,9 +97,12 @@ class MDCT(torch.nn.Module):
         """
         inverse_transform = F.conv_transpose1d(magnitude, 
                             self.inverse_basis.unsqueeze(dim=1).T, 
-                            stride=self.hop_length, padding=0)
-
-        return (inverse_transform[..., np.ceil(self.pad_amount).astype(int):-np.floor(self.pad_amount).astype(int)]).squeeze(1)*(4/self.filter_length)
+                            stride=self.hop_size, padding=0)
+        
+        if self.pad and self.save_pad:
+            inverse_transform = inverse_transform[..., self.pad:-self.pad]
+            
+        return inverse_transform.squeeze(1)*(4/self.filter_length)
 
     def reconstruct(self, input_data, **kwargs):
         """Takes input data (audio) to DCT domain and then back to audio.
