@@ -7,7 +7,7 @@ The current implementation only allows even filter_lengths and always uses 50% o
 
 To install the package simply run
 
-  -- python setup.py install
+  <code>python setup.py install</code>
 
 This module is an adaptation/combination of the following github repositories:
 
