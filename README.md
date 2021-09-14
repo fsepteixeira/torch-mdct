@@ -4,7 +4,7 @@ Pytorch implementation of the 1D Modified Discrete Cosine Transform (MDCT) and i
 The MDCT and its inverse are implemented using 1D regular and transpose convolutions, using a filterbank of Kaiser-Bessel Derived windows with alpha = 4.
 The current implementation only allows even filter_lengths and always uses 50% overlap to guarantee perfect reconstruction. 
 
-To install the package simply run:
+To install the package clone the repository and run:
 
   <code>python setup.py install</code>
 
