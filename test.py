@@ -1,5 +1,3 @@
-import numpy as np
-
 import torch, torchaudio
 from mdct import MDCT
 
