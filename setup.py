@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-NAME = 'torch_mcdt'
+NAME = 'torch_mdct'
 REQUIREMENTS = [
     'numpy',
     'torch',
@@ -10,10 +10,6 @@ REQUIREMENTS = [
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
-
-EXTRAS={
-        'tests': ['pytest']
-    }
 
 setup(
     name="torch_mdct",
