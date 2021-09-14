@@ -100,7 +100,7 @@ class MDCT(torch.nn.Module):
             reconstruction {tensor} -- Reconstructed audio given magnitude. Of
                 shape (num_batch, num_samples)
         """
-        magnitude.     = self.mdct(input_data)
+        magnitude      = self.mdct(input_data)
         reconstruction = self.imdct(magnitude)
         return reconstruction
 
