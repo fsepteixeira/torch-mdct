@@ -1,4 +1,4 @@
-from setuptools import find_packages, setup
+from setuptools import setup
 
 NAME = 'torch_mdct'
 REQUIREMENTS = [
@@ -20,6 +20,6 @@ setup(
     url="https://github.com/fsepteixeira/torch-mdct",
     author="Francisco Teixeira",
     author_email="francisco.s.teixeira@tecnico.ulisboa.pt",
-    packages=find_packages(),
+    packages=["torch_mdct"],
     install_requires=REQUIREMENTS,
 )
