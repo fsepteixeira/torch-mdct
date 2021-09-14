@@ -14,11 +14,20 @@ def kbd_window_(win_len, filt_len, alpha=4):
     window = np.sqrt(window[:-1] / window[-1])
 
     if filt_len > win_len:
-        pad =(filt_len - win_len) // 2
+        # pad value for each size of half the window
+        pad = (filt_len - win_len) // 4
     else:
         pad = 0
-
+    
+    # Pad left with zeros
+    window = np.pad(window, (np.ceil(pad).astype(int), 0),  
+                    mode='constant', constant_values=0)
+    
+    # Pad right with ones (flat top)
+    window = np.pad(window, (0, np.floor(pad).astype(int)), 
+                    mode='constant', constant_values=1)
+    
+    # Mirror window
     window = np.concatenate([window, window[::-1]])
-    window = np.pad(window, (np.ceil(pad).astype(int), np.floor(pad).astype(int)), mode='constant')
+    
     return torch.FloatTensor(window)[:,None]
-
