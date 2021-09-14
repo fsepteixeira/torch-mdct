@@ -1,5 +1,5 @@
-import torch, torchaudio
-from mdct import MDCT
+import torchaudio
+from torch_mdct import MDCT
 
 
 def main():
